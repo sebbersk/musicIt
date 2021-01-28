@@ -18,13 +18,11 @@ function ArtistDisplay() {
 		linkId: '',
 		chosen: null,
 		tags: [],
+		lcs: {},
 	});
 	const setSong = async (song) => {
-		const l = sessionStorage.getItem('lyrics');
-		const lyrics = JSON.parse(l);
-
 		const linkId = await getYoutubeId(artistName, song.song);
-		setArtistState((state) => ({ ...state, lyrics: lyrics[song.song], chosen: song.song, linkId }));
+		setArtistState((state) => ({ ...state, lyrics: state.lcs[song.song], chosen: song.song, linkId }));
 	};
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	useEffect(async () => {
@@ -34,75 +32,32 @@ function ArtistDisplay() {
 		let artistN = songsData[0].artist.name;
 		artistN = artistN.replace(regex, ' ');
 		const linkId = await getYoutubeId(artistName, songsData[0].name);
-		if (sessionStorage.getItem('lyrics')) {
-			const l = sessionStorage.getItem('lyrics');
-			const lyrics = JSON.parse(l);
-			if (lyrics[songsData[0].name]) {
-				setTimeout(() => {
-					setArtistState((state) => ({
-						...state,
-						artistInfo: {
-							name: artistData.artist.name,
-							content: artistData.artist.bio.summary,
-						},
-						lyrics: lyrics[songsData[0].name],
-						songs: songsData,
-						loading: false,
-						chosen: songsData[0].name,
-						linkId,
-						tags: artistData.artist.tags.tag.slice(0, 3),
-					}));
-				}, 3000);
-			} else {
-				const lcs = {};
-				songsData.forEach(async (song) => {
-					const lyrics = await getLyrics(artistN, song.name);
-					lcs[song.name] = lyrics;
-					sessionStorage.setItem('lyrics', JSON.stringify(lcs));
-				});
-				setTimeout(() => {
-					setArtistState((state) => ({
-						...state,
-						artistInfo: {
-							name: artistData.artist.name,
-							content: artistData.artist.bio.summary,
-						},
-						lyrics: lcs[songsData[0].name],
-						songs: songsData,
-						loading: false,
-						chosen: songsData[0].name,
-						linkId,
-						tags: artistData.artist.tags.tag.slice(0, 3),
-					}));
-				}, 3000);
+		const lcs = {};
+		songsData.forEach(async (song) => {
+			try {
+				const lyrics = await getLyrics(artistN, song.name);
+				lcs[song.name] = lyrics;
+			} catch (e) {
+				console.log(e);
 			}
-		} else {
-			const lcs = {};
-			songsData.forEach(async (song) => {
-				try {
-					const lyrics = await getLyrics(artistN, song.name);
-					lcs[song.name] = lyrics;
-					sessionStorage.setItem('lyrics', JSON.stringify(lcs));
-				} catch (e) {
-					console.log(e);
-				}
-			});
-			setTimeout(() => {
-				setArtistState((state) => ({
-					...state,
-					artistInfo: {
-						name: artistData.artist.name,
-						content: artistData.artist.bio.summary,
-					},
-					lyrics: lcs[songsData[0].name],
-					songs: songsData,
-					loading: false,
-					chosen: songsData[0].name,
-					linkId,
-					tags: artistData.artist.tags.tag.slice(0, 3),
-				}));
-			}, 3000);
-		}
+		});
+		setTimeout(() => {
+			setArtistState((state) => ({
+				...state,
+				artistInfo: {
+					name: artistData.artist.name,
+					content: artistData.artist.bio.summary,
+				},
+				lyrics: lcs[songsData[0].name],
+				songs: songsData,
+				loading: false,
+				chosen: songsData[0].name,
+				linkId,
+				tags: artistData.artist.tags.tag.slice(0, 3),
+				lcs,
+			}));
+		}, 3000);
+
 		// eslint-disable-next-line
 	}, []);
 	let content = '';

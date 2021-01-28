@@ -15,68 +15,34 @@ function SongDisplay() {
 		loading: true,
 		chosen: [],
 		lyrics: '',
+		lcs: {},
 	});
 
 	const setSong = async (song) => {
-		const l = sessionStorage.getItem('lyrics');
-		const lyrics = JSON.parse(l);
 		const linkId = await getYoutubeId(song.artist, song.song);
-		setSongState((state) => ({ ...state, lyrics: lyrics[song.song], chosen: [song.song, song.artist], linkId }));
+		setSongState((state) => ({ ...state, lyrics: state.lcs[song.song], chosen: [song.song, song.artist], linkId }));
 	};
 
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	useEffect(async () => {
 		const trackArray = await getSongsByTitle(songTitle);
 		const linkId = await getYoutubeId(trackArray[0].artist, trackArray[0].name);
+		const lcs = {};
+		trackArray.forEach(async (song) => {
+			lcs[song.name] = await getLyrics(song.artist, song.name);
+		});
+		setTimeout(() => {
+			setSongState((state) => ({
+				...state,
+				trackArray,
+				lyrics: lcs[trackArray[0].name],
+				loading: false,
+				chosen: [trackArray[0].name, trackArray[0].artist],
+				linkId,
+				lcs,
+			}));
+		}, 3000);
 
-		if (sessionStorage.getItem('lyrics')) {
-			const l = sessionStorage.getItem('lyrics');
-			const lyrics = JSON.parse(l);
-			if (lyrics[trackArray[0].name]) {
-				setTimeout(() => {
-					setSongState((state) => ({
-						...state,
-						trackArray,
-						lyrics: lyrics[trackArray[0].name],
-						loading: false,
-						chosen: [trackArray[0].name, trackArray[0].artist],
-						linkId,
-					}));
-				}, 3000);
-			} else {
-				const lcs = {};
-				trackArray.forEach(async (song) => {
-					lcs[song.name] = await getLyrics(song.artist, song.name);
-					sessionStorage.setItem('lyrics', JSON.stringify(lcs));
-				});
-				setTimeout(() => {
-					setSongState((state) => ({
-						...state,
-						trackArray,
-						lyrics: lcs[trackArray[0].name],
-						loading: false,
-						chosen: [trackArray[0].name, trackArray[0].artist],
-						linkId,
-					}));
-				}, 3000);
-			}
-		} else {
-			const lcs = {};
-			trackArray.forEach(async (song) => {
-				lcs[song.name] = await getLyrics(song.artist, song.name);
-				sessionStorage.setItem('lyrics', JSON.stringify(lcs));
-			});
-			setTimeout(() => {
-				setSongState((state) => ({
-					...state,
-					trackArray,
-					lyrics: lcs[trackArray[0].name],
-					loading: false,
-					chosen: [trackArray[0].name, trackArray[0].artist],
-					linkId,
-				}));
-			}, 3000);
-		}
 		// eslint-disable-next-line
 	}, []);
 	let content = '';
