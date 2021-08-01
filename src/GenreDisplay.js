@@ -34,13 +34,15 @@ function GenreDisplay(props) {
 		const artistArray = [];
 		const artistSongContainer = {};
 		artistInfoArray.forEach(async (artist) => {
-			artistArray.push(artist.name);
 			const trackInfoArray = await getSongsByArtist(artist.name, 3);
 			const trackArray = [];
-			trackInfoArray.forEach((track) => {
-				trackArray.push(track.name);
-			});
-			artistSongContainer[artist.name] = { name: artist.name, tracks: trackArray };
+			if (trackInfoArray !== null) {
+				artistArray.push(artist.name);
+				trackInfoArray.forEach((track) => {
+					trackArray.push(track.name);
+				});
+				artistSongContainer[artist.name] = { name: artist.name, tracks: trackArray };
+			}
 		});
 
 		const genreInfo = { info: genreSummary, name: genreName };

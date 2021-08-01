@@ -7,13 +7,21 @@ const getArtist = async (artistName) => {
 const getSongsByArtist = async (artistName, amount) => {
 	const songsRes = await fetch(`/api/v1/artist/${artistName}/songs/${amount}`);
 	const songsData = await songsRes.json();
-	return songsData.toptracks.track;
+	try {
+		return songsData.toptracks.track;
+	} catch {
+		return null;
+	}
 };
 const getYoutubeId = async (artistName, songName) => {
 	const youtubeRes = await fetch(`/api/v1/youtube/${artistName}/${songName}`);
 	const youtubeData = await youtubeRes.json();
-	const youtubeId = youtubeData.items[0].id.videoId;
-	return youtubeId;
+	try {
+		const youtubeId = youtubeData.items[0].id.videoId;
+		return youtubeId;
+	} catch {
+		return null;
+	}
 };
 
 const getLyrics = async (artistName, songName) => {

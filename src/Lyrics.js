@@ -2,9 +2,12 @@ import React from 'react';
 
 function Lyrics(props) {
 	const alignLyrics = (lyrics) => {
-		const regex = /(\r\n|\n|\r)/gm;
-		const text = lyrics.replace(regex, '\n');
-		return text;
+		if (props.lyrics) {
+			const regex = /(\r\n|\n|\r)/gm;
+			const text = lyrics.replace(regex, '\n');
+			return text;
+		}
+		return 'Lyrics could not be found in the API :(';
 	};
 	return (
 		<>
